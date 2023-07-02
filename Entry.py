@@ -20,6 +20,25 @@ ax = create_court(ax, 'black')
 team_data = {}
 
 
+def save_shot(shot_made, player_dropdown, play_type_dropdown, x, y):
+
+    player_val = player_dropdown.get()
+    shot_made_val = shot_made.get()
+    play_type_val = play_type_dropdown.get()
+
+    # Store shot data in a dictionary
+    shot = {
+        "x": x,
+        "y": y,
+        "shot_made": shot_made_val,
+        "player_name": player_val,
+        "play_type": play_type_val
+
+    }
+    # Create DF for shot
+    shot_df = pd.DataFrame([shot], index=[0])
+    print(shot_df)
+    team_data[player_val] = shot_df
 
 
 def record_shot(x, y):
@@ -28,63 +47,48 @@ def record_shot(x, y):
     play_type = StringVar()
 
     # Make 0r Miss radiobutton
-    Radiobutton(window,text="Make",variable=shot_made,value=1).place(x=60,y=480)
-    Radiobutton(window, text="Miss", variable=shot_made, value=0).place(x=120, y=480)
+    Radiobutton(window, text="Make", variable=shot_made,
+                value=1).place(x=60, y=580)
+    Radiobutton(window, text="Miss", variable=shot_made,
+                value=0).place(x=140, y=580)
 
     # city Label
-    Label(window, text="Player:").place(x=60, y=520)
+    Label(window, text="Player:").place(x=60, y=620)
     # city combobox
     player_dropdown = ttk.Combobox(window, width=27, textvariable=player)
     player_dropdown['values'] = ('Jokic',
-                              'Murray',
-                              'Brown',
-                              'Gordon',
-                              'MPJ',
-                              'KCP',
-                              'Braun',
-                              'Green',
-                              )
+                                 'Murray',
+                                 'Brown',
+                                 'Gordon',
+                                 'MPJ',
+                                 'KCP',
+                                 'Braun',
+                                 'Green',
+                                 )
     player_dropdown.current()
-    player_dropdown.place(x=120,y=520)
+    player_dropdown.place(x=120, y=620)
 
     # city Label
-    Label(window, text="Play Type:").place(x=60, y=560)
+    Label(window, text="Play Type:").place(x=60, y=660)
     # city combobox
     play_type_dropdown = ttk.Combobox(window, width=27, textvariable=play_type)
     play_type_dropdown['values'] = ('PNR Ballhandler',
-                              'PNR Screener',
-                              'DHO Ballhandler',
-                              'DHO Screener',
-                              'Isolation',
-                              'Transition',
-                              'Catch & Shoot',
-                              'Attacking Closeouts',
-                              'Cutting',
-                              'Off-Ball Screens',
-                              'Off. Rebounds')
+                                    'PNR Screener',
+                                    'DHO Ballhandler',
+                                    'DHO Screener',
+                                    'Isolation',
+                                    'Transition',
+                                    'Catch & Shoot',
+                                    'Attacking Closeouts',
+                                    'Cutting',
+                                    'Off-Ball Screens',
+                                    'Off. Rebounds')
     play_type_dropdown.current()
-    play_type_dropdown.place(x=140,y=560)
+    play_type_dropdown.place(x=140, y=660)
 
-    Button(window, text="Record Shot", width=10, height=1, bg="orange",command=save_shot).place(x=250,y=510)
+    Button(window, text="Record Shot", width=10, height=1,
+           bg="orange", command=lambda: save_shot(shot_made, player_dropdown, play_type_dropdown, x, y)).place(x=450, y=610)
 
-    def save_shot():
-
-        player_val = player.get()
-        shot_made_val = shot_made.get()
-        play_type_val = play_type.get()
-        
-        # Store shot data in a dictionary
-        shot = {
-            "x": x,
-            "y": y,
-            "shot_made": "Make" if shot_made_val == 1 else "Miss",
-            "player_name": player_val,
-            "play_type": play_type_val
-
-        }
-        # Create DF for shot
-        shot_df = pd.DataFrame([shot], index=[0])
-        return shot_df
 
 def get_shot_zone(x, y):
     # Function to determine the shot zone based on the coordinates
@@ -98,23 +102,26 @@ def get_shot_zone(x, y):
         return "Lane and Key"
     else:
         return "Unknown"
-    
+
+
 def on_canvas_click(event):
     # Create a DF for the shot
-    shot_dataframe = record_shot(event.x, event.y)
-    team_data['murray'] = shot_dataframe
+    record_shot(event.x, event.y)
+
 
 def save_shot_data():
-    df = team_data['murray']
-    df.to_csv("shot_data.csv", index=False)
-    print("Shot data saved to shot_data.csv")
+    for i in team_data:
+        df = team_data[i]
+        df.to_csv(f'{i}.csv', index=False)
+        print("Shot data saved to shot_data.csv")
+
 
 # Create the main window
 window = tk.Tk()
 window.title("Nuggets")
 
 # Create a canvas widget
-canvas = tk.Canvas(window, width=500, height=700)
+canvas = tk.Canvas(window, width=600, height=700)
 canvas.pack()
 
 # Create the FigureCanvasTkAgg object
