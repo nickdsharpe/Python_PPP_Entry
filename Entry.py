@@ -5,8 +5,12 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk
 from court import create_court
+from update_player_df import update_player_df
 
+players = ['Jokic', 'Murray', 'Brown',
+           'Gordon', 'MPJ', 'KCP', 'Braun', 'Green', ]
 empty_df = pd.read_csv('empty.csv')
+team_data = {i: empty_df for i in players}
 
 # General plot parameters
 mpl.rcParams['font.family'] = 'Avenir'
@@ -17,34 +21,36 @@ fig = plt.figure(figsize=(4, 3.76))
 ax = fig.add_axes([0, 0, 1, 1])
 ax = create_court(ax, 'black')
 
-team_data = {}
 
-
-def save_shot(shot_made, player_dropdown, play_type_dropdown, x, y):
+def save_shot(shot_made, player_dropdown, play_type_dropdown, shot_type_dropdown, x, y):
 
     player_val = player_dropdown.get()
     shot_made_val = shot_made.get()
     play_type_val = play_type_dropdown.get()
+    shot_type_val = shot_type_dropdown.get()
 
     # Store shot data in a dictionary
     shot = {
         "x": x,
         "y": y,
-        "shot_made": shot_made_val,
+        "shot_made": "Make" if shot_made_val == 1 else "Miss",
         "player_name": player_val,
-        "play_type": play_type_val
-
+        "play_type": play_type_val,
+        "shot_type:": shot_type_val
     }
     # Create DF for shot
     shot_df = pd.DataFrame([shot], index=[0])
     print(shot_df)
-    team_data[player_val] = shot_df
+    updated_game_df = update_player_df(shot_df, team_data[player_val])
+    print(updated_game_df)
+    team_data[player_val] = updated_game_df
 
 
 def record_shot(x, y):
     shot_made = IntVar()
     player = StringVar()
     play_type = StringVar()
+    shot_type = StringVar()
 
     # Make 0r Miss radiobutton
     Radiobutton(window, text="Make", variable=shot_made,
@@ -52,9 +58,9 @@ def record_shot(x, y):
     Radiobutton(window, text="Miss", variable=shot_made,
                 value=0).place(x=140, y=580)
 
-    # city Label
+    # Player Label
     Label(window, text="Player:").place(x=60, y=620)
-    # city combobox
+    # Player combobox
     player_dropdown = ttk.Combobox(window, width=27, textvariable=player)
     player_dropdown['values'] = ('Jokic',
                                  'Murray',
@@ -68,9 +74,9 @@ def record_shot(x, y):
     player_dropdown.current()
     player_dropdown.place(x=120, y=620)
 
-    # city Label
+    # Play Type Label
     Label(window, text="Play Type:").place(x=60, y=660)
-    # city combobox
+    # Play Type combobox
     play_type_dropdown = ttk.Combobox(window, width=27, textvariable=play_type)
     play_type_dropdown['values'] = ('PNR Ballhandler',
                                     'PNR Screener',
@@ -82,12 +88,26 @@ def record_shot(x, y):
                                     'Attacking Closeouts',
                                     'Cutting',
                                     'Off-Ball Screens',
-                                    'Off. Rebounds')
+                                    'Offensive Rebounds')
     play_type_dropdown.current()
-    play_type_dropdown.place(x=140, y=660)
+    play_type_dropdown.place(x=150, y=660)
+
+    # Shot Type Label
+    Label(window, text="Shot Type:").place(x=60, y=700)
+    # Shot Type combobox
+    shot_type_dropdown = ttk.Combobox(window, width=27, textvariable=shot_type)
+    shot_type_dropdown['values'] = ('2pt Field Goal',
+                                    '3pt Field Goal',
+                                    '2pt Free Throws',
+                                    '3pt Free Throws',
+                                    '2pt And-1',
+                                    '3pt And-1'
+                                    )
+    shot_type_dropdown.current()
+    shot_type_dropdown.place(x=155, y=700)
 
     Button(window, text="Record Shot", width=10, height=1,
-           bg="orange", command=lambda: save_shot(shot_made, player_dropdown, play_type_dropdown, x, y)).place(x=450, y=610)
+           bg="orange", command=lambda: save_shot(shot_made, player_dropdown, play_type_dropdown, shot_type_dropdown, x, y)).place(x=480, y=610)
 
 
 def get_shot_zone(x, y):
@@ -121,7 +141,7 @@ window = tk.Tk()
 window.title("Nuggets")
 
 # Create a canvas widget
-canvas = tk.Canvas(window, width=600, height=700)
+canvas = tk.Canvas(window, width=1000, height=1200)
 canvas.pack()
 
 # Create the FigureCanvasTkAgg object
